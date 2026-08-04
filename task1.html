@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Management System</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#f5f5f5;
+    padding:20px;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+
+h1{
+    text-align:center;
+    color:#2c3e50;
+    margin-bottom:20px;
+}
+
+.form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:10px;
+    margin-bottom:20px;
+}
+
+input{
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:5px;
+}
+
+button{
+    padding:10px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    color:white;
+    font-weight:bold;
+}
+
+.add{
+    background:#27ae60;
+}
+
+.update{
+    background:#2980b9;
+    display:none;
+}
+
+.export{
+    background:#8e44ad;
+    margin-top:10px;
+}
+
+.sort{
+    background:#f39c12;
+    margin-top:10px;
+}
+
+.search{
+    margin:15px 0;
+    width:100%;
+    padding:10px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+th{
+    background:#34495e;
+    color:white;
+    padding:10px;
+}
+
+td{
+    padding:10px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+}
+
+.editBtn{
+    background:#3498db;
+}
+
+.deleteBtn{
+    background:#e74c3c;
+}
+
+@media(max-width:700px){
+table{
+    font-size:12px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎓 Student Management System</h1>
+
+<div class="form">
+
+<input type="text" id="name" placeholder="Student Name">
+
+<input type="text" id="roll" placeholder="Roll Number">
+
+<input type="text" id="department" placeholder="Department">
+
+<input type="number" id="year" placeholder="Year">
+
+<input type="email" id="email" placeholder="Email">
+
+<button class="add" onclick="addStudent()">Add Student</button>
+
+<button class="update" id="updateBtn" onclick="updateStudent()">Update</button>
+
+</div>
+
+<input
+class="search"
+type="text"
+id="search"
+placeholder="Search Student..."
+onkeyup="searchStudent()">
+
+<button class="sort" onclick="sortStudents()">Sort by Name</button>
+
+<button class="export" onclick="exportCSV()">Export CSV</button>
+
+<table>
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Roll</th>
+<th>Department</th>
+<th>Year</th>
+<th>Email</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+</div>
+
+<script>
+
+let students = [];
+let editIndex = -1;
+
+// Get HTML elements
+const nameInput = document.getElementById("name");
+const rollInput = document.getElementById("roll");
+const departmentInput = document.getElementById("department");
+const yearInput = document.getElementById("year");
+const emailInput = document.getElementById("email");
+const searchInput = document.getElementById("search");
+const updateBtn = document.getElementById("updateBtn");
+const addBtn = document.querySelector(".add");
+
+function renderTable(data = students){
+
+    const body = document.getElementById("tableBody");
+    body.innerHTML = "";
+
+    data.forEach(student => {
+
+        const index = students.indexOf(student);
+
+        body.innerHTML += `
+        <tr>
+            <td>${student.name}</td>
+            <td>${student.roll}</td>
+            <td>${student.department}</td>
+            <td>${student.year}</td>
+            <td>${student.email}</td>
+            <td>
+                <button class="editBtn" onclick="editStudent(${index})">Edit</button>
+                <button class="deleteBtn" onclick="deleteStudent(${index})">Delete</button>
+            </td>
+        </tr>
+        `;
+    });
+}
+
+function clearForm(){
+
+    nameInput.value = "";
+    rollInput.value = "";
+    departmentInput.value = "";
+    yearInput.value = "";
+    emailInput.value = "";
+}
+
+function addStudent(){
+
+    const student = {
+        name: nameInput.value.trim(),
+        roll: rollInput.value.trim(),
+        department: departmentInput.value.trim(),
+        year: yearInput.value.trim(),
+        email: emailInput.value.trim()
+    };
+
+    if(student.name === "" || student.roll === ""){
+        alert("Please fill required fields");
+        return;
+    }
+
+    students.push(student);
+
+    renderTable();
+
+    clearForm();
+}
+
+function deleteStudent(index){
+
+    if(confirm("Delete Student?")){
+
+        students.splice(index,1);
+
+        renderTable();
+    }
+}
+
+function editStudent(index){
+
+    editIndex = index;
+
+    nameInput.value = students[index].name;
+    rollInput.value = students[index].roll;
+    departmentInput.value = students[index].department;
+    yearInput.value = students[index].year;
+    emailInput.value = students[index].email;
+
+    addBtn.style.display = "none";
+    updateBtn.style.display = "inline-block";
+}
+
+function updateStudent(){
+
+    students[editIndex] = {
+
+        name: nameInput.value,
+        roll: rollInput.value,
+        department: departmentInput.value,
+        year: yearInput.value,
+        email: emailInput.value
+
+    };
+
+    renderTable();
+
+    clearForm();
+
+    addBtn.style.display = "inline-block";
+    updateBtn.style.display = "none";
+}
+
+function searchStudent(){
+
+    const keyword = searchInput.value.toLowerCase();
+
+    const filtered = students.filter(student =>
+
+        student.name.toLowerCase().includes(keyword) ||
+        student.roll.toLowerCase().includes(keyword) ||
+        student.department.toLowerCase().includes(keyword)
+
+    );
+
+    renderTable(filtered);
+}
+
+function sortStudents(){
+
+    students.sort((a,b)=>a.name.localeCompare(b.name));
+
+    renderTable();
+}
+
+function exportCSV(){
+
+    let csv = "Name,Roll,Department,Year,Email\n";
+
+    students.forEach(student=>{
+
+        csv += `${student.name},${student.roll},${student.department},${student.year},${student.email}\n`;
+
+    });
+
+    const blob = new Blob([csv], {type:"text/csv"});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "students.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+</script>
+
+</body>
+</html>
